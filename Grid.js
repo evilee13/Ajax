@@ -2,24 +2,56 @@
 
 export default class Grid {
     constructor(id, structure, url) {
-        if (url) {
-            this.getInformation(url);
-        }
         this.id = id;
         this.tblBody;
+        this.info;
         this.columns = structure.columns;
         this.renderer = structure.renderer;
         this.dataSource = structure.dataSource;
         this.table = document.getElementById(id);
+        if (url) {
+            this.getInformation(url);
+        }
         this.createTable();
         this.createFilter();
+        this.createButton();
     }
 
     async getInformation(url) {
         let response = await fetch(url);
         let dataInfo = await response.json();
-        this.dataSource = dataInfo.results
+        this.dataSource = dataInfo.results;
+        this.info = dataInfo.info;
         this.redraw()
+    }
+
+    next() {
+        this.getInformation(this.info.next)
+            .catch(error => console.log(error))
+
+    }
+
+    prev() {
+        this.getInformation(this.info.prev)
+            .catch(error => console.log(error))
+    }
+
+    createButton() {
+        let btn = document.createElement("BUTTON");
+        btn.innerHTML = "Вперед";
+        btn.id = 'Next';
+        document.body.appendChild(btn)
+        btn.addEventListener('click', () => {
+            this.next()
+        });
+
+        let btn2 = document.createElement("BUTTON");
+        btn2.innerHTML = "Назад";
+        btn2.id = 'Prev';
+        document.body.appendChild(btn2)
+        btn2.addEventListener('click', () => {
+            this.prev()
+        })
     }
 
     redraw(data) {
@@ -29,7 +61,7 @@ export default class Grid {
 
     filter(columnName, value) {
         return this.dataSource.filter(item => {
-            return item[columnName] === value;
+            return item[columnName].includes(value);
         })
     }
 
@@ -41,12 +73,12 @@ export default class Grid {
         document.body.appendChild(input)
 
         let buttonFilter = document.createElement("button");
-        buttonFilter.innerHTML = "Filter"
+        buttonFilter.innerHTML = "Фильтр"
         buttonFilter.id = 'buttonFilter'
         document.body.appendChild(buttonFilter)
         buttonFilter.addEventListener('click', () => {
-            this.filterParams = {column: "genre", value: input.value.toLowerCase()}
-            this.redraw(this.filter('genre', input.value.toLowerCase()))
+            this.filterParams = {column: "name", value: input.value}
+            this.redraw(this.filter('name', input.value))
         })
     }
 
@@ -86,15 +118,3 @@ export default class Grid {
         }
     }
 }
-
-
-
-
-// let url = 'https://rickandmortyapi.com/api/character'
-// fetch(url)
-//     .then(response => response.json())
-//     .then(data => console.log(data))
-
-// data.results.forEach((item) => {
-//     console.log(item.name+item.status+item.type+item.gender+item.origin.name)
-// })
