@@ -5,6 +5,7 @@ export default class Grid {
         this.id = id;
         this.tblBody;
         this.info;
+        this.url = url;
         this.columns = structure.columns;
         this.renderer = structure.renderer;
         this.dataSource = structure.dataSource;
@@ -26,9 +27,8 @@ export default class Grid {
     }
 
     next() {
-        this.getInformation(this.info.next)
-            .catch(error => console.log(error))
-
+            this.getInformation(this.info.next)
+                .catch(error => console.log(error))
     }
 
     prev() {
@@ -60,9 +60,9 @@ export default class Grid {
     }
 
     filter(columnName, value) {
-        return this.dataSource.filter(item => {
-            return item[columnName].includes(value);
-        })
+        let url = `https://rickandmortyapi.com/api/character/?name=${value}`
+        this.getInformation(url)
+            .catch(error => console.log(error))
     }
 
     createFilter() {
@@ -77,8 +77,7 @@ export default class Grid {
         buttonFilter.id = 'buttonFilter'
         document.body.appendChild(buttonFilter)
         buttonFilter.addEventListener('click', () => {
-            this.filterParams = {column: "name", value: input.value}
-            this.redraw(this.filter('name', input.value))
+            this.filter('name', input.value)
         })
     }
 
@@ -98,17 +97,16 @@ export default class Grid {
 
     render(data) {
         this.removeRows(this.tblBody);
-        if (this.filterParams) {
-            data = this.filter(this.filterParams.column, this.filterParams.value)
-        }
-        for (let i = 0; i < data.length; i++) {
-            let tableRow = data[i];
-            let tr = document.createElement('tr');
-            for (let col of this.columns) {
-                this.renderer(i, tableRow, col.columnName, tr)
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                let tableRow = data[i];
+                let tr = document.createElement('tr');
+                for (let col of this.columns) {
+                    this.renderer(i, tableRow, col.columnName, tr)
+                }
+                tr.dataset.id = tableRow.id
+                this.tblBody.appendChild(tr);
             }
-            tr.dataset.id = tableRow.id
-            this.tblBody.appendChild(tr);
         }
     }
 
